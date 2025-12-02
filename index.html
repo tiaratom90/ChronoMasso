@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Massage Session Timer</title>
+    <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Massage Session Timer&quot;,&quot;short_name&quot;:&quot;Timer&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#1a1a1a&quot;,&quot;theme_color&quot;:&quot;#1a1a1a&quot;,&quot;icons&quot;:[]}">
+    <style>
+        :root {
+            --color-bg-primary: #000000;
+            --color-bg-secondary: #2d2d2d;
+            --color-bg-tertiary: #3a3a3a;
+            --color-text-primary: #d4d4d4;
+            --color-text-secondary: #909090;
+            --color-accent: #3d9d92;
+            --color-accent-hover: #4db8a8;
+            --color-accent-light: rgba(61, 157, 146, 0.1);
+            --color-error: #ff6b6b;
+            --color-success: #51cf66;
+            --duration-fast: 150ms;
+            --duration-normal: 250ms;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--color-bg-primary);
+        }
+
+        /* HOME PAGE */
+        .home-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            height: 100%;
+            gap: 30px;
+        }
+
+        .home-page.hidden {
+            display: none;
+        }
+
+        .timer-selection {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .time-btn {
+            padding: 12px 28px;
+            font-size: 15px;
+            font-weight: 500;
+            border: 1px solid rgba(61, 157, 146, 0.3);
+            background-color: transparent;
+            color: var(--color-accent);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease);
+            min-width: 100px;
+            letter-spacing: 0.3px;
+        }
+
+        .time-btn:hover:not(.disabled) {
+            background-color: rgba(61, 157, 146, 0.08);
+            border-color: var(--color-accent);
+        }
+
+        .time-btn.active {
+            background-color: var(--color-accent);
+            color: var(--color-bg-primary);
+            border-color: var(--color-accent);
+        }
+
+        .time-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(77, 184, 168, 0.2);
+        }
+
+        .zones-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .zones-section h3 {
+            text-align: center;
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 500;
+        }
+
+        .zones-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .zone-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 11px 12px;
+            background-color: transparent;
+            border: 1px solid rgba(144, 144, 144, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease);
+            user-select: none;
+        }
+
+        .zone-checkbox:hover {
+            background-color: rgba(61, 157, 146, 0.05);
+            border-color: rgba(61, 157, 146, 0.4);
+        }
+
+        .zone-checkbox input[type="radio"] {
+            cursor: pointer;
+            margin-right: 8px;
+        }
+
+        .zone-checkbox input[type="radio"]:focus-visible {
+            outline: none;
+        }
+
+        .zone-checkbox label {
+            cursor: pointer;
+            flex: 1;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .start-btn {
+            padding: 14px 44px;
+            font-size: 15px;
+            font-weight: 500;
+            background-color: var(--color-accent);
+            color: var(--color-bg-primary);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease);
+            margin-top: 24px;
+            letter-spacing: 0.3px;
+        }
+
+        .start-btn:hover {
+            background-color: var(--color-accent-hover);
+        }
+
+        .start-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(77, 184, 168, 0.2);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* TIMER PAGE */
+        .timer-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            height: 100%;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .timer-page.hidden {
+            display: none;
+        }
+
+        .timers-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .timer-circle {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .timer-circle#segmentTimer {
+            width: 210px;
+            height: 210px;
+        }
+
+        .timer-circle#segmentTimer .timer-circle-container {
+            width: 210px;
+            height: 210px;
+        }
+
+        .timer-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            order: -1;
+            margin-bottom: 0;
+        }
+
+        .timer-circle-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .timer-svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .timer-circle-bg {
+            fill: none;
+            stroke: var(--color-bg-tertiary);
+            stroke-width: 8;
+        }
+
+        .timer-circle-progress {
+            fill: none;
+            stroke: var(--color-accent);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .timer-midpoint-marker {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .timer-midpoint-line {
+            position: absolute;
+            width: 2px;
+            height: 8px;
+            background-color: #5a6a65;
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .timer-midpoint-line.active {
+            background-color: var(--color-accent);
+            box-shadow: 0 0 8px rgba(77, 184, 168, 0.6);
+        }
+
+        .timer-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .timer-time {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--color-accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-sublabel {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+            margin-top: 4px;
+        }
+
+        .timer-half-indicator {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-accent);
+            margin-top: 6px;
+        }
+
+            color: #6b9896;
+        }
+
+        .split-side-indicator {
+            position: absolute;
+            top: 6px;
+            font-size: 10px;
+            color: var(--color-accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: fadeInOut 0.6s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .segment-title-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .timer-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .timer-time {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--color-accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-sublabel {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+            margin-top: 4px;
+        }
+
+            color: #6b9896;
+        }
+
+        .split-side-indicator {
+            position: absolute;
+            top: 6px;
+            font-size: 10px;
+            color: var(--color-accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: fadeInOut 0.6s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .segment-title-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--color-accent);
+        }
+
+            font-size: 12px;
+        }
+
+        .segment-timer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .segment-title {
+            text-align: center;
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .segment-timers {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .segment-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .segment-mini-timer {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .segment-mini-timer svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .segment-mini-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .segment-mini-time {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .segment-label {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+            text-align: center;
+            max-width: 100px;
+            line-height: 1.2;
+        }
+
+        .split-indicator {
+            font-size: 9px;
+            color: var(--color-text-secondary);
+            margin-top: 2px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 11px 22px;
+            font-size: 13px;
+            font-weight: 500;
+            background-color: transparent;
+            color: var(--color-text-primary);
+            border: 1px solid rgba(144, 144, 144, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease);
+            letter-spacing: 0.2px;
+        }
+
+        .control-btn:hover {
+            background-color: rgba(144, 144, 144, 0.08);
+            border-color: rgba(144, 144, 144, 0.5);
+        }
+
+        .control-btn.primary {
+            background-color: var(--color-accent);
+            color: var(--color-bg-primary);
+            border-color: var(--color-accent);
+        }
+
+        .control-btn.primary:hover {
+            background-color: var(--color-accent-hover);
+            border-color: var(--color-accent-hover);
+        }
+
+        .control-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--color-accent);
+        }
+
+        /* AUDIO ALERT */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .alert-active .timer-circle-progress {
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .timers-container {
+                gap: 20px;
+            }
+
+            .timer-circle {
+                width: 160px;
+                height: 160px;
+            }
+
+            .timer-time {
+                font-size: 36px;
+            }
+
+            .segment-mini-timer {
+                width: 85px;
+                height: 85px;
+            }
+
+            .segment-mini-time {
+                font-size: 20px;
+            }
+
+            .segment-label {
+                max-width: 80px;
+                font-size: 10px;
+            }
+
+            .timer-page {
+                padding: 15px;
+                gap: 15px;
+            }
+
+            .home-page {
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .zones-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .timer-circle {
+                width: 140px;
+                height: 140px;
+            }
+
+            .timer-time {
+                font-size: 32px;
+            }
+
+            .timer-label {
+                font-size: 10px;
+            }
+
+            .segment-mini-timer {
+                width: 75px;
+                height: 75px;
+            }
+
+            .segment-mini-time {
+                font-size: 18px;
+            }
+
+            .segment-label {
+                max-width: 70px;
+                font-size: 9px;
+            }
+
+            .timers-container {
+                gap: 15px;
+            }
+
+            .controls {
+                gap: 8px;
+            }
+
+            .control-btn {
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- HOME PAGE -->
+        <div class="home-page" id="homePage">
+            <h1 style="font-size: 28px; margin-bottom: 28px; font-weight: 500; letter-spacing: 0.3px;">Minuteur de Massage</h1>
+
+            <div class="timer-selection">
+                <button class="time-btn active" data-time="60">60 min</button>
+                <button class="time-btn" data-time="90">90 min</button>
+            </div>
+
+            <div class="zones-section">
+                <h3>Zone Prioritaire (Optionnel)</h3>
+                <div class="zones-grid">
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="none" checked>
+                        <span>Aucune</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="dos">
+                        <span>Dos</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="ischio">
+                        <span>Ischio</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="gastroc">
+                        <span>Gastro</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="quads">
+                        <span>Quad</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="pects">
+                        <span>Pect</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="bras">
+                        <span>Bras</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="nuque">
+                        <span>Nuque</span>
+                    </label>
+                </div>
+            </div>
+
+            <button class="start-btn" id="startBtn">Démarrer la session</button>
+        </div>
+
+        <!-- TIMER PAGE -->
+        <div class="timer-page hidden" id="timerPage">
+            <div class="timers-container">
+                <!-- Total Time Timer -->
+                <div class="timer-circle" id="totalTimer">
+                    <div class="timer-label">Temps Total</div>
+                    <div class="timer-circle-container">
+                        <svg class="timer-svg" viewBox="0 0 200 200">
+                            <circle class="timer-circle-bg" cx="100" cy="100" r="92"></circle>
+                            <circle class="timer-circle-progress" id="totalProgress" cx="100" cy="100" r="92" stroke-dasharray="578.05" stroke-dashoffset="0"></circle>
+                        </svg>
+                        <div class="timer-content">
+                            <div class="timer-time" id="totalTimeDisplay">60:00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Segment Timer -->
+                <div class="timer-circle" id="segmentTimer">
+                    <div class="timer-label" id="segmentLabel">Dos</div>
+                    <div class="timer-circle-container">
+                        <svg class="timer-svg" viewBox="0 0 200 200">
+                            <circle class="timer-circle-bg" cx="100" cy="100" r="92"></circle>
+                            <circle class="timer-circle-progress" id="segmentProgress" cx="100" cy="100" r="92" stroke-dasharray="578.05" stroke-dashoffset="0"></circle>
+                            <g id="segmentMidpointMarker" class="timer-midpoint-marker"></g>
+                        </svg>
+                        <div class="timer-content">
+                            <div class="timer-time" id="segmentTimeDisplay">20:00</div>
+                            <div class="timer-half-indicator" id="segmentHalfIndicator"></div>
+                            <div class="timer-sublabel" id="segmentSublabel"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="segment-timer">
+                <div class="segment-title" id="segmentsTitle">Ordre des zones</div>
+                <div class="segment-timers" id="segmentsList"></div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn primary" id="playPauseBtn">Pause</button>
+                <button class="control-btn" id="resetBtn">Réinitialiser</button>
+                <button class="control-btn" id="backBtn">Retour</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Timer Configuration
+        const TIMINGS = {
+            60: {
+                none: {
+                    'Dos': 20,
+                    'M.I. - Procub': 14,
+                    'M.I. - Decub': 12,
+                    'M.S.': 10,
+                    'Nuque': 4
+                },
+                dos: {
+                    'Dos': 30,
+                    'M.I. - Procub': 12,
+                    'M.I. - Decub': 8,
+                    'M.S.': 8,
+                    'Nuque': 2
+                },
+                ischio: {
+                    'Dos': 18,
+                    'M.I. - Procub': 20,
+                    'M.I. - Decub': 12,
+                    'M.S.': 8,
+                    'Nuque': 2
+                },
+                gastroc: {
+                    'Dos': 18,
+                    'M.I. - Procub': 20,
+                    'M.I. - Decub': 12,
+                    'M.S.': 8,
+                    'Nuque': 2
+                },
+                quads: {
+                    'Dos': 14,
+                    'M.I. - Procub': 16,
+                    'M.I. - Decub': 20,
+                    'M.S.': 8,
+                    'Nuque': 2
+                },
+                pects: {
+                    'Dos': 16,
+                    'M.I. - Procub': 10,
+                    'M.I. - Decub': 10,
+                    'M.S.': 20,
+                    'Nuque': 4
+                },
+                bras: {
+                    'Dos': 16,
+                    'M.I. - Procub': 10,
+                    'M.I. - Decub': 10,
+                    'M.S.': 20,
+                    'Nuque': 4
+                },
+                nuque: {
+                    'Dos': 22,
+                    'M.I. - Procub': 12,
+                    'M.I. - Decub': 10,
+                    'M.S.': 8,
+                    'Nuque': 8
+                }
+            },
+            90: {
+                none: {
+                    'Dos': 30,
+                    'M.I. - Procub': 18,
+                    'M.I. - Decub': 16,
+                    'Ventre': 8,
+                    'M.S.': 14,
+                    'Nuque': 4
+                },
+                dos: {
+                    'Dos': 40,
+                    'M.I. - Procub': 16,
+                    'M.I. - Decub': 14,
+                    'Ventre': 6,
+                    'M.S.': 10,
+                    'Nuque': 4
+                },
+                ischio: {
+                    'Dos': 26,
+                    'M.I. - Procub': 30,
+                    'M.I. - Decub': 18,
+                    'Ventre': 6,
+                    'M.S.': 8,
+                    'Nuque': 2
+                },
+                gastroc: {
+                    'Dos': 26,
+                    'M.I. - Procub': 30,
+                    'M.I. - Decub': 18,
+                    'Ventre': 6,
+                    'M.S.': 8,
+                    'Nuque': 2
+                },
+                quads: {
+                    'Dos': 20,
+                    'M.I. - Procub': 30,
+                    'M.I. - Decub': 18,
+                    'Ventre': 6,
+                    'M.S.': 8,
+                    'Nuque': 2
+                },
+                pects: {
+                    'Dos': 24,
+                    'M.I. - Procub': 14,
+                    'M.I. - Decub': 12,
+                    'Ventre': 6,
+                    'M.S.': 30,
+                    'Nuque': 4
+                },
+                bras: {
+                    'Dos': 24,
+                    'M.I. - Procub': 14,
+                    'M.I. - Decub': 12,
+                    'Ventre': 6,
+                    'M.S.': 30,
+                    'Nuque': 4
+                },
+                nuque: {
+                    'Dos': 36,
+                    'M.I. - Procub': 14,
+                    'M.I. - Decub': 10,
+                    'Ventre': 6,
+                    'M.S.': 12,
+                    'Nuque': 12
+                }
+            }
+        };
+
+        const SPLIT_SEGMENTS = ['M.I. - Procub', 'M.I. - Decub', 'M.S.'];
+
+        let state = {
+            selectedTime: 60,
+            selectedZone: 'none',
+            isRunning: false,
+            totalTimeRemaining: 3600,
+            currentSegmentIndex: 0,
+            segments: [],
+            segmentTimeRemaining: 0
+        };
+
+        // DOM Elements
+        const homePage = document.getElementById('homePage');
+        const timerPage = document.getElementById('timerPage');
+        const timeButtons = document.querySelectorAll('.time-btn');
+        const startBtn = document.getElementById('startBtn');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const backBtn = document.getElementById('backBtn');
+        const totalTimeDisplay = document.getElementById('totalTimeDisplay');
+        const segmentTimeDisplay = document.getElementById('segmentTimeDisplay');
+        const segmentLabel = document.getElementById('segmentLabel');
+        const segmentSublabel = document.getElementById('segmentSublabel');
+        const segmentsList = document.getElementById('segmentsList');
+        const totalProgress = document.getElementById('totalProgress');
+        const segmentProgress = document.getElementById('segmentProgress');
+        const segmentTimer = document.getElementById('segmentTimer');
+        const segmentHalfIndicator = document.getElementById('segmentHalfIndicator');
+
+        let animationFrameId = null;
+        let lastUpdateTime = null;
+
+        // Time Button Selection
+        timeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                timeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.selectedTime = parseInt(btn.dataset.time);
+            });
+        });
+
+        // Zone Selection
+        document.querySelectorAll('input[name="zone"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                state.selectedZone = e.target.value;
+            });
+        });
+
+        // Start Session
+        startBtn.addEventListener('click', () => {
+            initializeTimer();
+            showTimerPage();
+            enterFullscreen();
+        });
+
+        function enterFullscreen() {
+            const elem = timerPage;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch((err) => {
+                    console.log('Fullscreen request failed:', err.message);
+                });
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        function initializeTimer() {
+            state.totalTimeRemaining = state.selectedTime * 60;
+            const timings = TIMINGS[state.selectedTime][state.selectedZone];
+            state.segments = Object.entries(timings).map(([name, minutes]) => ({
+                name,
+                duration: minutes * 60,
+                remaining: minutes * 60,
+                isSplit: SPLIT_SEGMENTS.includes(name)
+            }));
+            state.currentSegmentIndex = 0;
+            state.segmentTimeRemaining = state.segments[0].remaining;
+            state.isRunning = true;
+            lastUpdateTime = performance.now();
+
+            updateDisplay();
+            renderSegmentsList();
+            startAnimation();
+        }
+
+        function showTimerPage() {
+            homePage.classList.add('hidden');
+            timerPage.classList.remove('hidden');
+        }
+
+        function showHomePage() {
+            timerPage.classList.add('hidden');
+            homePage.classList.remove('hidden');
+            state.isRunning = false;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        }
+
+        function startAnimation() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            const tick = (currentTime) => {
+                if (!lastUpdateTime) lastUpdateTime = currentTime;
+                const deltaTime = (currentTime - lastUpdateTime) / 1000;
+                lastUpdateTime = currentTime;
+
+                if (state.isRunning && state.totalTimeRemaining > 0) {
+                    state.totalTimeRemaining -= deltaTime;
+                    state.segmentTimeRemaining -= deltaTime;
+
+                    // Segment transition
+                    if (state.segmentTimeRemaining <= 0 && state.currentSegmentIndex < state.segments.length - 1) {
+                        state.currentSegmentIndex++;
+                        state.segmentTimeRemaining = state.segments[state.currentSegmentIndex].remaining;
+                        playAlert();
+                    }
+
+                    // Session complete
+                    if (state.totalTimeRemaining <= 0) {
+                        state.totalTimeRemaining = 0;
+                        state.isRunning = false;
+                        playAlert();
+                    }
+
+                    updateDisplay();
+                }
+
+                animationFrameId = requestAnimationFrame(tick);
+            };
+
+            animationFrameId = requestAnimationFrame(tick);
+        }
+
+        function updateDisplay() {
+            // Total time
+            totalTimeDisplay.textContent = formatTime(Math.max(0, state.totalTimeRemaining));
+            updateCircleProgress(totalProgress, state.totalTimeRemaining, state.selectedTime * 60);
+
+            // Segment time
+            const currentSegment = state.segments[state.currentSegmentIndex];
+            segmentLabel.textContent = currentSegment.name;
+            segmentTimeDisplay.textContent = formatTime(Math.max(0, state.segmentTimeRemaining));
+            updateCircleProgress(segmentProgress, state.segmentTimeRemaining, currentSegment.duration);
+
+            // Update midpoint marker and half indicator
+            updateSegmentMidpointMarker(state.segmentTimeRemaining, currentSegment.duration);
+
+            if (currentSegment.isSplit) {
+                const isSecondHalf = state.segmentTimeRemaining < (currentSegment.duration / 2);
+                const halfText = isSecondHalf ? '2/2' : '1/2';
+                document.getElementById('segmentHalfIndicator').textContent = halfText;
+            } else {
+                document.getElementById('segmentHalfIndicator').textContent = '';
+            }
+            segmentSublabel.textContent = '';
+
+            // Update segment list visual
+            document.querySelectorAll('.segment-item').forEach((item, index) => {
+                if (index === state.currentSegmentIndex) {
+                    item.style.opacity = '1';
+                } else if (index < state.currentSegmentIndex) {
+                    item.style.opacity = '0.4';
+                } else {
+                    item.style.opacity = '0.6';
+                }
+            });
+
+            // Update mini timers
+            document.querySelectorAll('.segment-mini-progress').forEach((circle, index) => {
+                const segment = state.segments[index];
+                updateCircleProgress(circle, segment.remaining, segment.duration);
+                circle.closest('.segment-mini-timer').querySelector('.segment-mini-time').textContent = formatTime(Math.max(0, segment.remaining));
+            });
+
+            // Play/Pause button update
+            playPauseBtn.textContent = state.isRunning ? 'Pause' : 'Resume';
+        }
+
+        function updateCircleProgress(circle, remaining, total) {
+            const circumference = 578.05;
+            const progress = remaining / total;
+            const offset = circumference * (1 - progress);
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function updateSegmentMidpointMarker(remaining, total) {
+            const marker = document.getElementById('segmentMidpointMarker');
+            if (!marker) return;
+
+            marker.innerHTML = '';
+            const isSecondHalf = remaining < (total / 2);
+            const markerClass = isSecondHalf ? 'active' : '';
+
+            // Create 6 evenly distributed markers around 50% (one at top which is 50% of circumference)
+            const angles = [0, 60, 120, 180, 240, 300];
+            angles.forEach(angle => {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', '100');
+                line.setAttribute('y1', '8');
+                line.setAttribute('x2', '100');
+                line.setAttribute('y2', '16');
+                line.setAttribute('stroke', isSecondHalf ? '#4db8a8' : '#5a6a65');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('stroke-linecap', 'round');
+                line.setAttribute('opacity', isSecondHalf ? '0.9' : '0.5');
+                line.setAttribute('transform', `rotate(${angle} 100 100)`);
+                if (isSecondHalf) {
+                    line.setAttribute('filter', 'drop-shadow(0 0 4px rgba(77, 184, 168, 0.6))');
+                }
+                marker.appendChild(line);
+            });
+        }
+
+        function renderSegmentsList() {
+            segmentsList.innerHTML = '';
+            state.segments.forEach((segment, index) => {
+                const item = document.createElement('div');
+                item.className = 'segment-item';
+
+                const timerDiv = document.createElement('div');
+                timerDiv.className = 'segment-mini-timer';
+
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('viewBox', '0 0 200 200');
+                svg.setAttribute('class', 'timer-svg');
+
+                const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                bgCircle.setAttribute('class', 'timer-circle-bg');
+                bgCircle.setAttribute('cx', '100');
+                bgCircle.setAttribute('cy', '100');
+                bgCircle.setAttribute('r', '92');
+
+                const progressCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                progressCircle.setAttribute('class', 'timer-circle-progress segment-mini-progress');
+                progressCircle.setAttribute('cx', '100');
+                progressCircle.setAttribute('cy', '100');
+                progressCircle.setAttribute('r', '92');
+                progressCircle.setAttribute('stroke-dasharray', '578.05');
+                progressCircle.setAttribute('stroke-dashoffset', '0');
+
+                svg.appendChild(bgCircle);
+                svg.appendChild(progressCircle);
+                timerDiv.appendChild(svg);
+
+                const content = document.createElement('div');
+                content.className = 'segment-mini-content';
+                content.innerHTML = `<div class="segment-mini-time">${formatTime(segment.duration)}</div>`;
+                timerDiv.appendChild(content);
+
+                item.appendChild(timerDiv);
+
+                const label = document.createElement('div');
+                label.className = 'segment-label';
+                label.textContent = segment.name;
+                if (segment.isSplit) {
+                    const splitIndicator = document.createElement('div');
+                    splitIndicator.className = 'split-indicator';
+                    splitIndicator.textContent = '(left + right)';
+                    label.appendChild(splitIndicator);
+                }
+                item.appendChild(label);
+
+                segmentsList.appendChild(item);
+            });
+        }
+
+        function formatTime(seconds) {
+            seconds = Math.ceil(seconds);
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function playAlert() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+
+            // Visual alert
+            segmentTimer.classList.add('alert-active');
+            setTimeout(() => segmentTimer.classList.remove('alert-active'), 500);
+        }
+
+        // Controls
+        playPauseBtn.addEventListener('click', () => {
+            state.isRunning = !state.isRunning;
+            lastUpdateTime = null;
+            if (state.isRunning) startAnimation();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            state.isRunning = false;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            initializeTimer();
+        });
+
+        backBtn.addEventListener('click', showHomePage);
+
+        // Service Worker for offline support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript,' + encodeURIComponent(`
+                self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
+                self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
+            `)).catch(() => {});
+        }
+    </script>
+</body>
+</html>
