@@ -7,54 +7,723 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Massage Session Timer</title>
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="styles/variables.css">
-    <link rel="stylesheet" href="styles/base.css">
-    <link rel="stylesheet" href="styles/layout.css">
-    <link rel="stylesheet" href="styles/components.css">
-    <link rel="stylesheet" href="styles/animations.css">
-    <link rel="stylesheet" href="styles/responsive.css">
+    <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Massage Session Timer&quot;,&quot;short_name&quot;:&quot;Timer&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#1a1a1a&quot;,&quot;theme_color&quot;:&quot;#1a1a1a&quot;,&quot;icons&quot;:[]}">
+
+    <style>
+        :root {
+            --color-bg-primary: #000000;
+            --color-bg-secondary: #2d2d2d;
+            --color-bg-tertiary: #3a3a3a;
+            --color-text-primary: #d4d4d4;
+            --color-text-secondary: #909090;
+            --color-accent: #3d9d92;
+            --color-accent-hover: #4db8a8;
+            --color-accent-light: rgba(61, 157, 146, 0.1);
+            --color-error: #ff6b6b;
+            --color-success: #51cf66;
+            --duration-fast: 150ms;
+            --duration-normal: 250ms;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            /* Calculated Circumference for r=92 circle: 2 * PI * 92 ≈ 578.05 */
+            --circle-circumference: 578.05; 
+        }
+
+        /* Base Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--color-bg-primary);
+        }
+
+        /* --- HOME PAGE STYLES --- */
+        .home-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 4vw;
+            height: auto;
+            gap: clamp(16px, 3vh, 24px);
+        }
+
+        .home-page.hidden {
+            display: none;
+        }
+
+        .home-page h1 {
+            margin: 0;
+            text-align: center;
+            letter-spacing: 0.3px; /* Reduced letter-spacing for title */
+            font-size: 28px; /* Fixed size from inline style */
+            font-weight: 500; /* Fixed weight from inline style */
+            margin-bottom: 28px; /* Fixed margin from inline style */
+            color: var(--color-text-primary);
+            flex: 0 0 auto;
+        }
+
+        .timer-selection-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(12px, 2vh, 18px);
+            align-items: center;
+            flex: 0 0 auto;
+        }
+
+        .timer-selection-label {
+            font-size: clamp(10px, 1.5vw, 13px);
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 400;
+            margin: 0;
+        }
+
+        .timer-selection {
+            display: flex;
+            gap: clamp(20px, 8vw, 60px);
+            margin-bottom: 0;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .time-btn {
+            width: clamp(90px, 15vw, 150px);
+            height: clamp(90px, 15vw, 150px);
+            padding: 0;
+            font-size: clamp(18px, 3vw, 32px);
+            font-weight: 600;
+            border: 2px solid var(--color-accent);
+            background-color: transparent;
+            color: var(--color-accent);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            letter-spacing: 0;
+            flex: 0 1 auto;
+        }
+
+        .time-btn .time-unit { /* Styled the unit span */
+            display: block;
+            font-size: clamp(9px, 1.2vw, 12px);
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: clamp(2px, 0.5vh, 6px);
+            font-weight: 500;
+        }
+
+        .time-btn:hover:not(.disabled) {
+            background-color: rgba(61, 157, 146, 0.12);
+            border-color: var(--color-accent-hover);
+            transform: scale(1.08);
+        }
+
+        .time-btn.active {
+            background-color: var(--color-accent);
+            color: var(--color-bg-primary);
+            border-color: var(--color-accent);
+        }
+
+        .time-btn.active .time-unit {
+            color: var(--color-bg-primary);
+        }
+
+        .time-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(61, 157, 146, 0.25);
+        }
+        
+        /* Zones */
+        .zones-section {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(12px, 2vh, 18px);
+            width: 100%;
+            max-width: 85vw;
+            align-items: center;
+            flex: 0 0 auto;
+        }
+
+        .zones-section h3 {
+            text-align: center;
+            font-size: clamp(10px, 1.5vw, 13px);
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 400;
+            margin: 0;
+        }
+
+        .zones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(clamp(100px, 12vw, 140px), 1fr));
+            gap: clamp(10px, 2vw, 18px);
+            width: 100%;
+            justify-items: center;
+            max-width: 600px;
+        }
+
+        .zone-checkbox {
+            display: flex;
+            align-items: center;
+            padding: clamp(8px, 1.2vh, 14px) clamp(14px, 2vw, 20px);
+            background-color: transparent;
+            border: 1px solid rgba(144, 144, 144, 0.25);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease);
+            user-select: none;
+            justify-content: center;
+            font-size: clamp(12px, 1.5vw, 15px);
+        }
+
+        .zone-checkbox:hover {
+            background-color: rgba(61, 157, 146, 0.08);
+            border-color: rgba(61, 157, 146, 0.5);
+        }
+
+        .zone-checkbox input[type="radio"] {
+            cursor: pointer;
+            margin-right: 6px;
+        }
+
+        .zone-checkbox input[type="radio"]:focus-visible {
+            outline: none;
+        }
+
+        .zone-checkbox label { /* Removed, as the parent is the label */
+            cursor: pointer;
+            flex: 1;
+            font-weight: 400;
+        }
+        
+        /* Start Button */
+        .start-btn {
+            padding: clamp(12px, 1.5vh, 18px) clamp(40px, 8vw, 56px);
+            font-size: clamp(13px, 1.5vw, 16px);
+            font-weight: 500;
+            background-color: var(--color-accent);
+            color: var(--color-bg-primary);
+            border: none;
+            border-radius: 28px;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-top: 0;
+            flex: 0 0 auto;
+        }
+
+        .start-btn:hover {
+            background-color: var(--color-accent-hover);
+            transform: scale(1.06);
+        }
+
+        .start-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(61, 157, 146, 0.25);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- TIMER PAGE STYLES --- */
+        .timer-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            height: 100%;
+            gap: 20px;
+            overflow: auto;
+            flex: 1;
+            width: 100%;
+        }
+
+        .timer-page.hidden {
+            display: none;
+        }
+
+        .timers-container {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            width: 100%;
+            flex: 1 1 100%;
+            min-height: 0;
+        }
+
+        .timer-circle {
+            position: relative;
+            width: clamp(240px, 40vw, 380px);
+            height: clamp(240px, 40vh, 380px);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 4px;
+            flex: 0 1 auto;
+        }
+
+        .timer-circle#segmentTimer {
+            width: clamp(260px, 43vw, 420px);
+            height: clamp(260px, 43vh, 420px);
+        }
+
+        .timer-circle#segmentTimer .timer-circle-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Consolidated Timer Text Styles */
+        .timer-label, .segment-title {
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 400;
+            margin: 0;
+            text-align: center;
+        }
+        
+        .timer-label {
+            font-size: 11px;
+            order: -1;
+            letter-spacing: 0.8px;
+        }
+        
+        .segment-title {
+            font-size: 10px;
+            letter-spacing: 0.6px;
+            font-weight: 500;
+            margin-bottom: clamp(4px, 1vh, 10px);
+        }
+
+        .timer-circle-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .timer-svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .timer-circle-bg {
+            fill: none;
+            stroke: var(--color-bg-tertiary);
+            stroke-width: 8;
+        }
+
+        .timer-circle-progress {
+            fill: none;
+            stroke: var(--color-accent);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear;
+            stroke-dasharray: var(--circle-circumference); /* Use CSS variable */
+        }
+        
+        .timer-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+        
+        .timer-time {
+            font-size: 64px;
+            font-weight: 700;
+            color: var(--color-accent);
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .timer-half-indicator {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-accent);
+            margin-top: 6px;
+        }
+        
+        .timer-sublabel {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+            margin-top: 4px;
+        }
+        
+        /* Midpoint Markers */
+        .timer-midpoint-marker {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .timer-midpoint-line {
+            position: absolute;
+            width: 2px;
+            height: 8px;
+            background-color: #5a6a65;
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .timer-midpoint-line.active {
+            background-color: var(--color-accent);
+            box-shadow: 0 0 8px rgba(77, 184, 168, 0.6);
+        }
+
+        /* Split Indicator */
+        .split-side-indicator {
+            position: absolute;
+            top: 6px;
+            font-size: 10px;
+            color: var(--color-accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: fadeInOut 0.6s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* Segment Mini Timers */
+        .segment-timer {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(8px, 1.5vh, 16px);
+            width: 100%;
+            max-width: 100%;
+            flex: 0 0 auto;
+            min-height: 0;
+            padding: clamp(8px, 1.5vh, 16px) 0;
+        }
+
+        .segment-timers {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            overflow: hidden;
+            padding-bottom: clamp(12px, 2vh, 20px);
+        }
+
+        .segment-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .segment-mini-timer {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .segment-mini-timer svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .segment-mini-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .segment-mini-time {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .segment-label {
+            font-size: 9px;
+            color: var(--color-text-secondary);
+            text-align: center;
+            max-width: 90px;
+            line-height: 1.1;
+        }
+
+        .split-indicator {
+            font-size: 9px;
+            color: var(--color-text-secondary);
+            margin-top: 2px;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-top: 0;
+            flex-wrap: wrap;
+            flex: 0 0 auto;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            font-size: 12px;
+            font-weight: 500;
+            background-color: transparent;
+            color: var(--color-text-primary);
+            border: 1px solid rgba(144, 144, 144, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease);
+            letter-spacing: 0.2px;
+        }
+
+        .control-btn:hover {
+            background-color: rgba(144, 144, 144, 0.08);
+            border-color: rgba(144, 144, 144, 0.5);
+        }
+
+        .control-btn.primary {
+            background-color: var(--color-accent);
+            color: var(--color-bg-primary);
+            border-color: var(--color-accent);
+        }
+
+        .control-btn.primary:hover {
+            background-color: var(--color-accent-hover);
+            border-color: var(--color-accent-hover);
+        }
+
+        .control-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--color-accent);
+        }
+
+        /* Audio Alert */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .alert-active .timer-circle-progress {
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .timers-container {
+                gap: 12px;
+            }
+
+            .timer-circle {
+                width: 220px;
+                height: 220px;
+            }
+
+            .timer-circle#segmentTimer {
+                width: 240px;
+                height: 240px;
+            }
+            /* Removing redundant overrides of container sizes */
+            /*
+            .timer-circle#segmentTimer .timer-circle-container {
+                width: 240px;
+                height: 240px;
+            }
+
+            .timer-circle-container {
+                width: 220px;
+                height: 220px;
+            }
+            */
+
+            .timer-time {
+                font-size: 48px;
+            }
+
+            .segment-mini-timer {
+                width: 90px;
+                height: 90px;
+            }
+
+            .segment-mini-time {
+                font-size: 18px;
+            }
+
+            .segment-label {
+                max-width: 85px;
+                font-size: 8px;
+            }
+
+            .timer-page {
+                padding: 6px 3px;
+                gap: 6px;
+            }
+
+            .home-page {
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .zones-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .timer-circle {
+                width: 160px;
+                height: 160px;
+            }
+
+            .timer-time {
+                font-size: 32px;
+            }
+
+            .timer-label {
+                font-size: 10px;
+            }
+
+            .segment-mini-timer {
+                width: 90px;
+                height: 90px;
+            }
+
+            .segment-mini-time {
+                font-size: 18px;
+            }
+
+            .segment-label {
+                max-width: 70px;
+                font-size: 9px;
+            }
+
+            .timers-container {
+                gap: 15px;
+            }
+
+            .controls {
+                gap: 8px;
+            }
+
+            .control-btn {
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- HOME PAGE -->
         <div class="home-page" id="homePage">
-            <h1 class="app-title">Minuteur de Massage</h1>
+            <h1>Minuteur de Massage</h1>
 
             <div class="timer-selection-wrapper">
                 <div class="timer-selection-label">Durée</div>
                 <div class="timer-selection">
                     <button class="time-btn active" data-time="60">
-                        <span class="time-btn-value">60</span>
-                        <span class="time-btn-unit">min</span>
+                        <span class="time-value">60</span>
+                        <span class="time-unit">min</span>
                     </button>
                     <button class="time-btn" data-time="90">
-                        <span class="time-btn-value">90</span>
-                        <span class="time-btn-unit">min</span>
+                        <span class="time-value">90</span>
+                        <span class="time-unit">min</span>
                     </button>
                 </div>
             </div>
 
             <div class="zones-section">
-                <h3 class="zones-title">Zone Prioritaire (Optionnel)</h3>
-                <div class="zones-grid" id="zonesGrid"></div>
+                <h3>Zone Prioritaire (Optionnel)</h3>
+                <div class="zones-grid">
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="none" checked>
+                        <span>Aucune</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="dos">
+                        <span>Dos</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="ischio">
+                        <span>Ischio</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="gastroc">
+                        <span>Gastro</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="quads">
+                        <span>Quad</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="pects">
+                        <span>Pect</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="bras">
+                        <span>Bras</span>
+                    </label>
+                    <label class="zone-checkbox">
+                        <input type="radio" name="zone" value="nuque">
+                        <span>Nuque</span>
+                    </label>
+                </div>
             </div>
 
             <button class="start-btn" id="startBtn">Commencer</button>
         </div>
 
-        <!-- TIMER PAGE -->
         <div class="timer-page hidden" id="timerPage">
             <div class="timers-container">
-                <!-- Total Time Timer -->
                 <div class="timer-circle" id="totalTimer">
                     <div class="timer-label">Temps Total</div>
                     <div class="timer-circle-container">
                         <svg class="timer-svg" viewBox="0 0 200 200">
                             <circle class="timer-circle-bg" cx="100" cy="100" r="92"></circle>
-                            <circle class="timer-circle-progress" id="totalProgress" cx="100" cy="100" r="92" stroke-dasharray="578.05" stroke-dashoffset="0"></circle>
+                            <circle class="timer-circle-progress" id="totalProgress" cx="100" cy="100" r="92" stroke-dashoffset="0"></circle>
                         </svg>
                         <div class="timer-content">
                             <div class="timer-time" id="totalTimeDisplay">60:00</div>
@@ -62,25 +731,25 @@
                     </div>
                 </div>
 
-                <!-- Segment Timer -->
-                <div class="timer-circle timer-circle-large" id="segmentTimer">
+                <div class="timer-circle" id="segmentTimer">
                     <div class="timer-label" id="segmentLabel">Dos</div>
                     <div class="timer-circle-container">
                         <svg class="timer-svg" viewBox="0 0 200 200">
                             <circle class="timer-circle-bg" cx="100" cy="100" r="92"></circle>
-                            <circle class="timer-circle-progress" id="segmentProgress" cx="100" cy="100" r="92" stroke-dasharray="578.05" stroke-dashoffset="0"></circle>
+                            <circle class="timer-circle-progress" id="segmentProgress" cx="100" cy="100" r="92" stroke-dashoffset="0"></circle>
                             <g id="segmentMidpointMarker" class="timer-midpoint-marker"></g>
                         </svg>
                         <div class="timer-content">
                             <div class="timer-time" id="segmentTimeDisplay">20:00</div>
                             <div class="timer-half-indicator" id="segmentHalfIndicator"></div>
+                            <div class="timer-sublabel" id="segmentSublabel"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="segment-timer">
-                <div class="segment-title">Ordre des zones</div>
+                <div class="segment-title" id="segmentsTitle">Ordre des zones</div>
                 <div class="segment-timers" id="segmentsList"></div>
             </div>
 
@@ -92,16 +761,441 @@
         </div>
     </div>
 
-    <!-- JavaScript Files -->
-    <script src="js/constants.js"></script>
-    <script src="js/state.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/audio.js"></script>
-    <script src="js/dom-cache.js"></script>
-    <script src="js/svg-helpers.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/timer.js"></script>
-    <script src="js/events.js"></script>
-    <script src="js/main.js"></script>
+    <script>
+        // --- CONFIGURATION ---
+        // Using descriptive keys for cleaner structure, and explicit definition of split segments
+        const SEGMENT_DATA = {
+            'MI - Procub': { name: 'M.I. - Procub', isSplit: true }, // Membre Inférieur - Procubitus (Back of legs)
+            'MI - Decub': { name: 'M.I. - Decub', isSplit: true },   // Membre Inférieur - Decubitus (Front of legs)
+            'MS': { name: 'M.S.', isSplit: true },                 // Membre Supérieur (Arms/Shoulders)
+            'Dos': { name: 'Dos', isSplit: false },
+            'Nuque': { name: 'Nuque', isSplit: false },
+            'Ventre': { name: 'Ventre', isSplit: false }
+        };
+
+        const TIMINGS = {
+            60: {
+                none: [
+                    { key: 'Dos', min: 20 },
+                    { key: 'MI - Procub', min: 14 },
+                    { key: 'MI - Decub', min: 12 },
+                    { key: 'MS', min: 10 },
+                    { key: 'Nuque', min: 4 }
+                ],
+                dos: [
+                    { key: 'Dos', min: 30 },
+                    { key: 'MI - Procub', min: 12 },
+                    { key: 'MI - Decub', min: 8 },
+                    { key: 'MS', min: 8 },
+                    { key: 'Nuque', min: 2 }
+                ],
+                ischio: [
+                    { key: 'Dos', min: 18 },
+                    { key: 'MI - Procub', min: 20 },
+                    { key: 'MI - Decub', min: 12 },
+                    { key: 'MS', min: 8 },
+                    { key: 'Nuque', min: 2 }
+                ],
+                gastroc: [
+                    { key: 'Dos', min: 18 },
+                    { key: 'MI - Procub', min: 20 },
+                    { key: 'MI - Decub', min: 12 },
+                    { key: 'MS', min: 8 },
+                    { key: 'Nuque', min: 2 }
+                ],
+                quads: [
+                    { key: 'Dos', min: 14 },
+                    { key: 'MI - Procub', min: 16 },
+                    { key: 'MI - Decub', min: 20 },
+                    { key: 'MS', min: 8 },
+                    { key: 'Nuque', min: 2 }
+                ],
+                pects: [
+                    { key: 'Dos', min: 16 },
+                    { key: 'MI - Procub', min: 10 },
+                    { key: 'MI - Decub', min: 10 },
+                    { key: 'MS', min: 20 },
+                    { key: 'Nuque', min: 4 }
+                ],
+                bras: [
+                    { key: 'Dos', min: 16 },
+                    { key: 'MI - Procub', min: 10 },
+                    { key: 'MI - Decub', min: 10 },
+                    { key: 'MS', min: 20 },
+                    { key: 'Nuque', min: 4 }
+                ],
+                nuque: [
+                    { key: 'Dos', min: 22 },
+                    { key: 'MI - Procub', min: 12 },
+                    { key: 'MI - Decub', min: 10 },
+                    { key: 'MS', min: 8 },
+                    { key: 'Nuque', min: 8 }
+                ]
+            },
+            90: {
+                none: [
+                    { key: 'Dos', min: 30 },
+                    { key: 'MI - Procub', min: 18 },
+                    { key: 'MI - Decub', min: 16 },
+                    { key: 'Ventre', min: 8 },
+                    { key: 'MS', min: 14 },
+                    { key: 'Nuque', min: 4 }
+                ],
+                dos: [
+                    { key: 'Dos', min: 40 },
+                    { key: 'MI - Procub', min: 16 },
+                    { key: 'MI - Decub', min: 14 },
+                    { key: 'Ventre', min: 6 },
+                    { key: 'MS', min: 10 },
+                    { key: 'Nuque', min: 4 }
+                ],
+                ischio: [
+                    { key: 'Dos', min: 26 },
+                    { key: 'MI - Procub', min: 30 },
+                    { key: 'MI - Decub', min: 18 },
+                    { key: 'Ventre', min: 6 },
+                    { key: 'MS', min: 8 },
+                    { key: 'Nuque', min: 2 }
+                ],
+                gastroc: [
+                    { key: 'Dos', min: 26 },
+                    { key: 'MI - Procub', min: 30 },
+                    { key: 'MI - Decub', min: 18 },
+                    { key: 'Ventre', min: 6 },
+                    { key: 'MS', min: 8 },
+                    { key: 'Nuque', min: 2 }
+                ],
+                quads: [
+                    { key: 'Dos', min: 20 },
+                    { key: 'MI - Procub', min: 30 },
+                    { key: 'MI - Decub', min: 18 },
+                    { key: 'Ventre', min: 6 },
+                    { key: 'MS', min: 8 },
+                    { key: 'Nuque', min: 2 }
+                ],
+                pects: [
+                    { key: 'Dos', min: 24 },
+                    { key: 'MI - Procub', min: 14 },
+                    { key: 'MI - Decub', min: 12 },
+                    { key: 'Ventre', min: 6 },
+                    { key: 'MS', min: 30 },
+                    { key: 'Nuque', min: 4 }
+                ],
+                bras: [
+                    { key: 'Dos', min: 24 },
+                    { key: 'MI - Procub', min: 14 },
+                    { key: 'MI - Decub', min: 12 },
+                    { key: 'Ventre', min: 6 },
+                    { key: 'MS', min: 30 },
+                    { key: 'Nuque', min: 4 }
+                ],
+                nuque: [
+                    { key: 'Dos', min: 36 },
+                    { key: 'MI - Procub', min: 14 },
+                    { key: 'MI - Decub', min: 10 },
+                    { key: 'Ventre', min: 6 },
+                    { key: 'MS', min: 12 },
+                    { key: 'Nuque', min: 12 }
+                ]
+            }
+        };
+
+        let state = {
+            selectedTime: 60,
+            selectedZone: 'none',
+            isRunning: false,
+            totalTimeRemaining: 0,
+            totalTimeDuration: 0,
+            currentSegmentIndex: 0,
+            segments: [],
+            segmentTimeRemaining: 0,
+            isAlerting: false,
+            // totalCircumference is calculated in CSS and read here once
+            totalCircumference: 578.05 
+        };
+
+        // --- DOM ELEMENTS ---
+        const DOMElements = {
+            homePage: document.getElementById('homePage'),
+            timerPage: document.getElementById('timerPage'),
+            timeButtons: document.querySelectorAll('.time-btn'),
+            startBtn: document.getElementById('startBtn'),
+            playPauseBtn: document.getElementById('playPauseBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            backBtn: document.getElementById('backBtn'),
+            totalTimeDisplay: document.getElementById('totalTimeDisplay'),
+            segmentTimeDisplay: document.getElementById('segmentTimeDisplay'),
+            segmentLabel: document.getElementById('segmentLabel'),
+            segmentSublabel: document.getElementById('segmentSublabel'),
+            segmentsList: document.getElementById('segmentsList'),
+            totalProgress: document.getElementById('totalProgress'),
+            segmentProgress: document.getElementById('segmentProgress'),
+            segmentTimer: document.getElementById('segmentTimer'),
+            segmentHalfIndicator: document.getElementById('segmentHalfIndicator'),
+            zoneRadios: document.querySelectorAll('input[name="zone"]'),
+            appContainer: document.querySelector('.app-container')
+        };
+        
+        let animationFrameId = null;
+        let lastUpdateTime = null;
+
+        // --- UTILITIES ---
+
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        function enterFullscreen(elem) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch((err) => {
+                    console.log('Fullscreen request failed:', err.message);
+                });
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+        
+        // --- STATE MANAGEMENT & UI RENDERING ---
+
+        /**
+         * Updates the state object and triggers a UI re-render.
+         * @param {object} newState - Partial state object to merge into the current state.
+         */
+        function updateState(newState) {
+            state = { ...state, ...newState };
+            renderUI();
+        }
+
+        function renderUI() {
+            const { 
+                selectedTime, isRunning, totalTimeRemaining, totalTimeDuration, 
+                currentSegmentIndex, segments, segmentTimeRemaining, isAlerting 
+            } = state;
+            
+            // 1. Home Page & Visibility
+            DOMElements.timeButtons.forEach(btn => {
+                const time = parseInt(btn.dataset.time);
+                btn.classList.toggle('active', time === selectedTime);
+            });
+            DOMElements.homePage.classList.toggle('hidden', totalTimeDuration > 0);
+            DOMElements.timerPage.classList.toggle('hidden', totalTimeDuration === 0);
+
+            // 2. Controls
+            DOMElements.playPauseBtn.textContent = isRunning ? 'Pause' : 'Reprendre';
+            DOMElements.playPauseBtn.classList.toggle('primary', isRunning);
+
+            // 3. Total Timer
+            if (totalTimeDuration > 0) {
+                const totalProgressOffset = state.totalCircumference * (1 - (totalTimeRemaining / totalTimeDuration));
+                DOMElements.totalProgress.style.strokeDashoffset = totalProgressOffset;
+                DOMElements.totalTimeDisplay.textContent = formatTime(totalTimeRemaining);
+            }
+            DOMElements.appContainer.classList.toggle('alert-active', isAlerting);
+            
+            // 4. Current Segment Timer
+            if (segments.length > 0) {
+                const currentSegment = segments[currentSegmentIndex];
+                const segmentDuration = currentSegment.duration;
+                const segmentProgressOffset = state.totalCircumference * (1 - (segmentTimeRemaining / segmentDuration));
+                
+                DOMElements.segmentProgress.style.strokeDashoffset = segmentProgressOffset;
+                DOMElements.segmentTimeDisplay.textContent = formatTime(segmentTimeRemaining);
+                DOMElements.segmentLabel.textContent = currentSegment.name;
+
+                // Half Indicator logic
+                if (currentSegment.isSplit) {
+                    const halfPoint = segmentDuration / 2;
+                    const isSecondHalf = segmentTimeRemaining <= halfPoint;
+                    DOMElements.segmentHalfIndicator.textContent = isSecondHalf ? 'Côté 2' : 'Côté 1';
+                } else {
+                    DOMElements.segmentHalfIndicator.textContent = '';
+                }
+            }
+            
+            // 5. Segments List
+            renderSegmentsList();
+        }
+
+        function renderSegmentsList() {
+            const { segments, currentSegmentIndex } = state;
+            DOMElements.segmentsList.innerHTML = segments.map((s, index) => {
+                const isActive = index === currentSegmentIndex;
+                const isCompleted = index < currentSegmentIndex;
+                const totalMinutes = s.duration / 60;
+                
+                let splitIndicator = '';
+                if (s.isSplit) {
+                    splitIndicator = `<div class="split-indicator">${totalMinutes / 2} min / côté</div>`;
+                }
+
+                return `
+                    <div class="segment-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}">
+                        <div class="segment-mini-timer">
+                            <svg viewBox="0 0 200 200">
+                                <circle class="timer-circle-bg" cx="100" cy="100" r="92"></circle>
+                            </svg>
+                            <div class="segment-mini-content">
+                                <div class="segment-mini-time">${totalMinutes}</div>
+                                <div class="segment-label">${s.name}</div>
+                                ${splitIndicator}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- TIMER CORE LOGIC ---
+
+        function startAnimation() {
+            if (!state.isRunning) return;
+            lastUpdateTime = performance.now();
+            animationFrameId = requestAnimationFrame(tick);
+        }
+
+        function stopAnimation() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        }
+
+        function tick(timestamp) {
+            const deltaTime = (timestamp - lastUpdateTime) / 1000; // time in seconds
+            lastUpdateTime = timestamp;
+
+            if (state.isRunning) {
+                let { totalTimeRemaining, segmentTimeRemaining, segments, currentSegmentIndex } = state;
+                
+                // Decrement timers
+                totalTimeRemaining -= deltaTime;
+                segmentTimeRemaining -= deltaTime;
+
+                // Segment transition logic
+                if (segmentTimeRemaining <= 0) {
+                    // Alert at segment end (optional sound effect here)
+                    // playAudioAlert(); 
+                    
+                    currentSegmentIndex++;
+                    if (currentSegmentIndex < segments.length) {
+                        // Move to next segment
+                        segmentTimeRemaining = segments[currentSegmentIndex].duration;
+                    } else {
+                        // Session finished
+                        totalTimeRemaining = 0;
+                        segmentTimeRemaining = 0;
+                        updateState({ isRunning: false, totalTimeRemaining, segmentTimeRemaining, currentSegmentIndex });
+                        return;
+                    }
+                }
+                
+                if (totalTimeRemaining <= 0) {
+                    totalTimeRemaining = 0;
+                    updateState({ isRunning: false, totalTimeRemaining });
+                    return;
+                }
+                
+                updateState({ totalTimeRemaining, segmentTimeRemaining, currentSegmentIndex });
+            }
+
+            animationFrameId = requestAnimationFrame(tick);
+        }
+
+        function initializeTimer() {
+            const selectedTimings = TIMINGS[state.selectedTime][state.selectedZone];
+            
+            const segments = selectedTimings.map(s => {
+                const data = SEGMENT_DATA[s.key];
+                return {
+                    name: data.name,
+                    duration: s.min * 60,
+                    remaining: s.min * 60,
+                    isSplit: data.isSplit
+                }
+            });
+            
+            const totalDuration = segments.reduce((sum, s) => sum + s.duration, 0);
+
+            // Set initial state
+            updateState({
+                totalTimeRemaining: totalDuration,
+                totalTimeDuration: totalDuration,
+                segments: segments,
+                currentSegmentIndex: 0,
+                segmentTimeRemaining: segments[0].duration,
+                isRunning: true
+            });
+            
+            // Start the timer loop
+            startAnimation(); 
+        }
+
+        // --- EVENT HANDLERS ---
+        
+        // Time Button Selection
+        DOMElements.timeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const newTime = parseInt(btn.dataset.time);
+                updateState({ selectedTime: newTime });
+            });
+        });
+
+        // Zone Selection
+        DOMElements.zoneRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                updateState({ selectedZone: e.target.value });
+            });
+        });
+
+        // Start Session
+        DOMElements.startBtn.addEventListener('click', () => {
+            initializeTimer();
+            enterFullscreen(DOMElements.appContainer);
+        });
+
+        // Play/Pause
+        DOMElements.playPauseBtn.addEventListener('click', () => {
+            updateState({ isRunning: !state.isRunning });
+            if (state.isRunning) {
+                startAnimation();
+            } else {
+                stopAnimation();
+            }
+        });
+
+        // Reset
+        DOMElements.resetBtn.addEventListener('click', () => {
+            stopAnimation();
+            updateState({
+                isRunning: false,
+                totalTimeRemaining: state.totalTimeDuration,
+                currentSegmentIndex: 0,
+                segmentTimeRemaining: state.segments[0]?.duration || 0 // Re-set segment to start
+            });
+        });
+
+        // Back to Home
+        DOMElements.backBtn.addEventListener('click', () => {
+            stopAnimation();
+            updateState({
+                totalTimeDuration: 0,
+                totalTimeRemaining: 0,
+                segments: [],
+                isRunning: false,
+                currentSegmentIndex: 0,
+                segmentTimeRemaining: 0
+            });
+            // Optional: Exit fullscreen if active
+            if (document.exitFullscreen) document.exitFullscreen();
+        });
+
+        // Initial render on load
+        renderUI();
+
+    </script>
 </body>
 </html>
