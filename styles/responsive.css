@@ -1,9 +1,0 @@
-css
-@media (max-width: 768px) {
-    .timer-circle { width: 220px; }
-}
-
-@media (max-width: 480px) {
-    .timer-circle { width: 160px; }
-}
-
