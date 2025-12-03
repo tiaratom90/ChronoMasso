@@ -1,0 +1,13 @@
+{
+    "name": "Massage Session Timer",
+    "short_name": "Timer",
+    "description": "Professional massage session timer with segment tracking",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1a1a1a",
+    "theme_color": "#1a1a1a",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "

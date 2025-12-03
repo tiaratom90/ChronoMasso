@@ -1,0 +1,13 @@
+css
+:root {
+    /* Colors */
+    --color-accent: #3d9d92;
+    --color-text-primary: #d4d4d4;
+    
+    /* Durations */
+    --duration-normal: 250ms;
+    
+    /* SVG Constants */
+    --svg-circumference: 578.05;
+}
+
