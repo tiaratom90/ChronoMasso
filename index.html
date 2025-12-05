@@ -25,7 +25,6 @@
             --duration-fast: 150ms;
             --duration-normal: 250ms;
             --ease: cubic-bezier(0.16, 1, 0.3, 1);
-            /* Calculated Circumference for r=92 circle: 2 * PI * 92 ≈ 578.05 */
             --circle-circumference: 578.05; 
         }
 
@@ -73,10 +72,10 @@
         .home-page h1 {
             margin: 0;
             text-align: center;
-            letter-spacing: 0.3px; /* Reduced letter-spacing for title */
-            font-size: 28px; /* Fixed size from inline style */
-            font-weight: 500; /* Fixed weight from inline style */
-            margin-bottom: 28px; /* Fixed margin from inline style */
+            letter-spacing: 0.3px;
+            font-size: 28px;
+            font-weight: 500;
+            margin-bottom: 28px;
             color: var(--color-text-primary);
             flex: 0 0 auto;
         }
@@ -126,7 +125,7 @@
             flex: 0 1 auto;
         }
 
-        .time-btn .time-unit { /* Styled the unit span */
+        .time-btn .time-unit {
             display: block;
             font-size: clamp(9px, 1.2vw, 12px);
             color: var(--color-text-secondary);
@@ -158,10 +157,8 @@
         }
         
         /* Zones */
-
-        /* Hide the native checkbox element */
         .zone-checkbox input[type="checkbox"] {
-        display: none; /* Hide the default radio/checkbox input */
+            display: none;
         }
         
         .zones-section {
@@ -192,9 +189,6 @@
             justify-items: center;
             max-width: 600px;
         }
-
-    
-
         
         .zone-checkbox {
             display: flex;
@@ -210,34 +204,29 @@
             font-size: clamp(12px, 1.5vw, 15px);
         }
 
-        /* Style the label when the contained checkbox is checked */
         .zone-checkbox input:checked + span {
-            color: var(--color-bg-primary); /* Text color when active (black/dark background) */
+            color: var(--color-bg-primary);
         }
 
         .zone-checkbox input:checked {
-            /* Ensure the input itself doesn't interfere */
             display: none; 
         }
 
-        /* NEW: Active style for the zone label (parent of the input) */
         .zone-checkbox input:checked ~ span {
             color: var(--color-bg-primary); 
         }
 
-        /* NEW: The label should have the teal background when the input is checked */
         .zone-checkbox input[type="checkbox"]:checked ~ span {
             color: var(--color-bg-primary);
         }
 
         .zone-checkbox:has(input[type="checkbox"]:checked) {
             background-color: var(--color-accent);
-            color: var(--color-bg-primary); /* Set text color of the label itself */
+            color: var(--color-bg-primary);
             border-color: var(--color-accent);
             transform: scale(1.05);
         }
 
-        /* Adjust hover for better feedback */
         .zone-checkbox:hover:not(:has(input[type="checkbox"]:checked)) {
             background-color: rgba(61, 157, 146, 0.08);
             border-color: var(--color-accent-hover);
@@ -277,16 +266,14 @@
 
         /* --- TIMER PAGE STYLES --- */
         .timer-page {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr auto;
             gap: 20px;
-            overflow: auto;
-            flex: 1;
+            padding: 20px;
+            height: 100vh;
             width: 100%;
+            overflow: hidden;
         }
 
         .timer-page.hidden {
@@ -294,31 +281,32 @@
         }
 
         .timers-container {
+            grid-column: 1 / -1;
+            grid-row: 1;
             display: flex;
-            gap: 8px;
+            gap: 40px;
             justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
             width: 100%;
-            flex: 1 1 100%;
-            min-height: 0;
+            height: 100%;
+            padding: 20px;
         }
 
         .timer-circle {
             position: relative;
-            width: clamp(240px, 40vw, 380px);
-            height: clamp(240px, 40vh, 380px);
+            width: min(45vh, 40vw);
+            height: min(45vh, 40vw);
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             align-items: center;
             gap: 4px;
-            flex: 0 1 auto;
+            flex: 0 0 auto;
         }
 
         .timer-circle#segmentTimer {
-            width: clamp(260px, 43vw, 420px);
-            height: clamp(260px, 43vh, 420px);
+            width: min(55vh, 48vw);
+            height: min(55vh, 48vw);
         }
 
         .timer-circle#segmentTimer .timer-circle-container {
@@ -337,7 +325,7 @@
         }
         
         .timer-label {
-            font-size: 20px;
+            font-size: 24px;
             order: -1;
             letter-spacing: 0.8px;
         }
@@ -350,9 +338,9 @@
         }
 
         #segmentTimer .timer-label {
-        font-weight: 600; /* Bold or Semi-bold */
-        font-size: 35px; /* Slightly bigger */
-        color: var(--color-text-primary); /* Make it stand out against secondary text */
+            font-weight: 600;
+            font-size: 48px;
+            color: var(--color-text-primary);
         }
 
         .timer-circle-container {
@@ -378,14 +366,13 @@
             stroke-width: 8;
         }
 
-        /* Add this new specific rule for the active mini-timer's background circle */
         .segment-item.active .segment-mini-timer .timer-circle-bg {
-            stroke: var(--color-accent); /* Set the line color to the main teal color */
-            stroke-width: 8; /* Keep the default thickness */
+            stroke: var(--color-accent);
+            stroke-width: 8;
         }
 
         #totalTimer .timer-circle-bg {
-        stroke-width: 5; /* Adjusted: Matches the thinner line */
+            stroke-width: 5;
         }
 
         .timer-circle-progress {
@@ -394,17 +381,12 @@
             stroke-width: 8;
             stroke-linecap: round;
             transition: stroke-dashoffset 1s linear;
-            stroke-dasharray: var(--circle-circumference); /* Use CSS variable */
+            stroke-dasharray: var(--circle-circumference);
         }
 
         #totalTimer .timer-circle-progress {
-        stroke: var(--color-total-muted); /* Keeps the muted color from previous request */
-        stroke-width: 5; /* Adjusted: Thinner line */
-        }
-
-        /* Override the Total Timer Progress Circle with the muted color */
-        #totalTimer .timer-circle-progress {
-         stroke: var(--color-total-muted);
+            stroke: var(--color-total-muted);
+            stroke-width: 5;
         }
         
         .timer-content {
@@ -414,26 +396,22 @@
         }
         
         .timer-time {
-            font-size: 64px;
+            font-size: 96px;
             font-weight: 700;
             color: var(--color-accent);
             font-variant-numeric: tabular-nums;
         }
 
-        /* Override the Total Timer Time Display with the muted color */
         #totalTimer .timer-time {
-        color: var(--color-total-muted);
-        font-weight: 500; /* Keeping the non-bold style from the last request */
+            color: var(--color-total-muted);
+            font-weight: 400;
+            font-size: 80px;
         }
 
-        #totalTimer .timer-time {
-    font-weight: 400; /* Or 'normal' or '400' to make it less bold */
-}
-
-#segmentTimer .timer-time {
-    /* Explicitly set to bold, though 700 is already the default in your provided code */
-    font-weight: 700; 
-}
+        #segmentTimer .timer-time {
+            font-weight: 700;
+            font-size: 110px;
+        }
         
         .timer-half-indicator {
             font-size: 13px;
@@ -492,30 +470,29 @@
 
         /* Segment Mini Timers */
         .segment-timer {
+            grid-column: 1;
+            grid-row: 2;
             display: flex;
             flex-direction: column;
-            gap: clamp(8px, 1.5vh, 16px);
+            gap: 12px;
             width: 100%;
-            max-width: 100%;
-            flex: 0 0 auto;
-            min-height: 0;
-            padding: clamp(8px, 1.5vh, 16px) 0;
+            padding: 16px;
+            align-items: flex-start;
         }
 
         .segment-timers {
             display: flex;
-            gap: 6px;
-            justify-content: center;
+            gap: 8px;
+            justify-content: flex-start;
             flex-wrap: wrap;
-            overflow: hidden;
-            padding-bottom: clamp(12px, 2vh, 20px);
+            overflow-y: auto;
+            max-height: 25vh;
         }
 
         .segment-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Increase gap between circle and label */
             gap: 8px; 
         }
 
@@ -537,20 +514,17 @@
         }
 
         .segment-mini-timer svg .timer-circle-bg {
-            stroke: var(--color-bg-tertiary); /* Default muted gray */
+            stroke: var(--color-bg-tertiary);
         }
 
-        /* NEW: Active Segment Item Styling */
         .segment-item.active .segment-mini-timer svg .timer-circle-bg {
-            /* Change background stroke to a slightly less intense version of accent */
             stroke: var(--color-accent); 
-}
+        }
 
         .segment-mini-content {
             position: relative;
             z-index: 1;
             text-align: center;
-            /* The time is centered inside the circle naturally */
         }
 
         .segment-mini-time {
@@ -560,30 +534,16 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* NEW: Active Mini-Timer Styling */
-
-        /* Make the active segment's time display and label color stand out */
         .segment-item.active .segment-mini-time {
             color: var(--color-accent); 
         }
 
-        /* Apply a strong border/ring effect around the mini-timer container */
-        .segment-item.active .segment-mini-timer {
-            /* Optional: Add a subtle glow or border to the whole item */
-            /* box-shadow: 0 0 8px rgba(61, 157, 146, 0.5); */
-            /* border: 1px solid var(--color-accent); */
-            /* If you were using a progress circle that wasn't just a placeholder: */
-            /* .segment-item.active .segment-mini-progress { stroke: var(--color-accent-hover); } */
-        }
-
         .segment-label {
-            font-size: 12px; /* Slightly bigger for better readability outside */
+            font-size: 12px;
             color: var(--color-text-secondary);
             text-align: center;
-            /* Remove constraints that were needed when inside the circle */
             max-width: none; 
             line-height: 1;
-            /* Add a small margin-bottom to separate from the split indicator */
             margin-bottom: 0px; 
             text-transform: uppercase;
         }
@@ -597,39 +557,37 @@
 
         /* Controls */
         .controls {
+            grid-column: 2;
+            grid-row: 2;
             display: flex;
-            gap: 12px; /* Slightly increased gap for larger buttons */
-            justify-content: center;
+            gap: 12px;
+            justify-content: flex-end;
+            align-items: flex-start;
             margin-top: 10px;
-            margin-bottom: 40px;  /* Added margin below the controls */ 
+            padding: 16px;
             flex-wrap: wrap;
-            flex: 0 0 auto;
         }
 
         .control-btn {
-            /* Dimensions & Font matching .start-btn */
-            padding: clamp(12px, 1.5vh, 18px) clamp(30px, 6vw, 46px); /* Slightly less wide than Start for smaller footprint */
+            padding: clamp(12px, 1.5vh, 18px) clamp(30px, 6vw, 46px);
             font-size: clamp(10px, 1.5vw, 16px);
             font-weight: 400;
-            letter-spacing: 0.5px; /* Matches start-btn */
+            letter-spacing: 0.5px;
             text-transform: uppercase; 
-            
-            /* Shape and Appearance */
-            background-color: var(--color-bg-primary); /* Default dark background */
+            background-color: var(--color-bg-primary);
             color: var(--color-text-primary);
-            border: 1px solid var(--color-text-secondary); /* Dark border for non-primary buttons */
-            border-radius: 28px; /* Rounded pill shape, matching start-btn */
+            border: 1px solid var(--color-text-secondary);
+            border-radius: 28px;
             cursor: pointer;
             transition: all var(--duration-normal) var(--ease);
         }
 
         .control-btn:hover {
-            background-color: var(--color-bg-tertiary); /* Dark hover effect */
+            background-color: var(--color-bg-tertiary);
             border-color: var(--color-text-primary);
-            transform: scale(1.03); /* Subtle scale on hover */
+            transform: scale(1.03);
         }
 
-        /* Primary Button (Pause/Play) - Must match the Start Button's teal style */
         .control-btn.primary {
             background-color: var(--color-accent);
             color: var(--color-bg-primary);
@@ -639,7 +597,7 @@
         .control-btn.primary:hover {
             background-color: var(--color-accent-hover);
             border-color: var(--color-accent-hover);
-            transform: scale(1.06); /* Slightly more pronounced scale for primary action */
+            transform: scale(1.06);
         }
 
         .control-btn:focus-visible {
@@ -658,35 +616,69 @@
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
-            .timers-container {
-                gap: 12px;
-            }
-
+        @media (max-width: 1024px) and (orientation: landscape) {
             .timer-circle {
-                width: 220px;
-                height: 220px;
+                width: min(40vh, 35vw);
+                height: min(40vh, 35vw);
             }
 
             .timer-circle#segmentTimer {
-                width: 240px;
-                height: 240px;
+                width: min(48vh, 42vw);
+                height: min(48vh, 42vw);
             }
-            /* Removing redundant overrides of container sizes */
-            /*
-            .timer-circle#segmentTimer .timer-circle-container {
-                width: 240px;
-                height: 240px;
-            }
-
-            .timer-circle-container {
-                width: 220px;
-                height: 220px;
-            }
-            */
 
             .timer-time {
-                font-size: 48px;
+                font-size: 80px;
+            }
+
+            #segmentTimer .timer-time {
+                font-size: 96px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .timer-page {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr auto auto;
+            }
+
+            .timers-container {
+                gap: 20px;
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .timer-circle {
+                width: min(35vh, 70vw);
+                height: min(35vh, 70vw);
+            }
+
+            .timer-circle#segmentTimer {
+                width: min(40vh, 80vw);
+                height: min(40vh, 80vw);
+            }
+
+            .timer-time {
+                font-size: 56px;
+            }
+
+            #segmentTimer .timer-time {
+                font-size: 72px;
+            }
+
+            #segmentTimer .timer-label {
+                font-size: 32px;
+            }
+
+            .segment-timer {
+                grid-column: 1;
+                grid-row: 2;
+            }
+
+            .controls {
+                grid-column: 1;
+                grid-row: 3;
+                justify-content: center;
             }
 
             .segment-mini-timer {
@@ -863,12 +855,10 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        // Using descriptive keys for cleaner structure, and explicit definition of split segments
         const SEGMENT_DATA = {
-            'MI - Procub': { name: 'M.I. Procub', isSplit: true }, // Membre Inférieur - Procubitus (Back of legs)
-            'MI - Decub': { name: 'M.I. Decub', isSplit: true },   // Membre Inférieur - Decubitus (Front of legs)
-            'MS': { name: 'M.S.', isSplit: true },                 // Membre Supérieur (Arms/Shoulders)
+            'MI - Procub': { name: 'M.I. Procub', isSplit: true },
+            'MI - Decub': { name: 'M.I. Decub', isSplit: true },
+            'MS': { name: 'M.S.', isSplit: true },
             'Dos': { name: 'Dos', isSplit: false },
             'Nuque': { name: 'Nuque', isSplit: false },
             'Ventre': { name: 'Ventre', isSplit: false }
@@ -1011,11 +1001,9 @@
             segments: [],
             segmentTimeRemaining: 0,
             isAlerting: false,
-            // totalCircumference is calculated in CSS and read here once
             totalCircumference: 578.05 
         };
 
-        // --- DOM ELEMENTS ---
         const DOMElements = {
             homePage: document.getElementById('homePage'),
             timerPage: document.getElementById('timerPage'),
@@ -1040,8 +1028,6 @@
         let animationFrameId = null;
         let lastUpdateTime = null;
 
-        // --- UTILITIES ---
-
         function formatTime(seconds) {
             const min = Math.floor(seconds / 60);
             const sec = Math.floor(seconds % 60);
@@ -1059,13 +1045,7 @@
                 elem.msRequestFullscreen();
             }
         }
-        
-        // --- STATE MANAGEMENT & UI RENDERING ---
 
-        /**
-         * Updates the state object and triggers a UI re-render.
-         * @param {object} newState - Partial state object to merge into the current state.
-         */
         function updateState(newState) {
             state = { ...state, ...newState };
             renderUI();
@@ -1077,7 +1057,6 @@
                 currentSegmentIndex, segments, segmentTimeRemaining, isAlerting 
             } = state;
             
-            // 1. Home Page & Visibility
             DOMElements.timeButtons.forEach(btn => {
                 const time = parseInt(btn.dataset.time);
                 btn.classList.toggle('active', time === selectedTime);
@@ -1085,11 +1064,9 @@
             DOMElements.homePage.classList.toggle('hidden', totalTimeDuration > 0);
             DOMElements.timerPage.classList.toggle('hidden', totalTimeDuration === 0);
 
-            // 2. Controls
             DOMElements.playPauseBtn.textContent = isRunning ? 'Pause' : 'Reprendre';
             DOMElements.playPauseBtn.classList.toggle('primary', isRunning);
 
-            // 3. Total Timer
             if (totalTimeDuration > 0) {
                 const totalProgressOffset = state.totalCircumference * (1 - (totalTimeRemaining / totalTimeDuration));
                 DOMElements.totalProgress.style.strokeDashoffset = totalProgressOffset;
@@ -1097,7 +1074,6 @@
             }
             DOMElements.appContainer.classList.toggle('alert-active', isAlerting);
             
-            // 4. Current Segment Timer
             if (segments.length > 0) {
                 const currentSegment = segments[currentSegmentIndex];
                 const segmentDuration = currentSegment.duration;
@@ -1107,7 +1083,6 @@
                 DOMElements.segmentTimeDisplay.textContent = formatTime(segmentTimeRemaining);
                 DOMElements.segmentLabel.textContent = currentSegment.name;
 
-                // Half Indicator logic
                 if (currentSegment.isSplit) {
                     const halfPoint = segmentDuration / 2;
                     const isSecondHalf = segmentTimeRemaining <= halfPoint;
@@ -1117,42 +1092,37 @@
                 }
             }
             
-            // 5. Segments List
             renderSegmentsList();
         }
 
         function renderSegmentsList() {
-                    const { segments, currentSegmentIndex } = state;
-                    DOMElements.segmentsList.innerHTML = segments.map((s, index) => {
-                        const isActive = index === currentSegmentIndex;
-                        const isCompleted = index < currentSegmentIndex;
-                        const totalMinutes = s.duration / 60;
-                        
-                        let splitIndicator = '';
-                        if (s.isSplit) {
-                            // Move the split indicator out of segment-mini-content
-                            splitIndicator = `<div class="split-indicator">${totalMinutes / 2} x 2</div>`; 
-                        }
-
-                        return `
-                            <div class="segment-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}">
-                                <div class="segment-mini-timer">
-                                    <svg viewBox="0 0 200 200">
-                                        <circle class="timer-circle-bg" cx="100" cy="100" r="92"></circle>
-                                    </svg>
-                                    <div class="segment-mini-content">
-                                        <div class="segment-mini-time">${totalMinutes}</div>
-                                        </div>
-                                </div>
-                                
-                                <div class="segment-label">${s.name}</div> 
-                                ${splitIndicator}
-                                </div>
-                        `;
-                    }).join('');
+            const { segments, currentSegmentIndex } = state;
+            DOMElements.segmentsList.innerHTML = segments.map((s, index) => {
+                const isActive = index === currentSegmentIndex;
+                const isCompleted = index < currentSegmentIndex;
+                const totalMinutes = s.duration / 60;
+                
+                let splitIndicator = '';
+                if (s.isSplit) {
+                    splitIndicator = `<div class="split-indicator">${totalMinutes / 2} x 2</div>`; 
                 }
 
-        // --- TIMER CORE LOGIC ---
+                return `
+                    <div class="segment-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}">
+                        <div class="segment-mini-timer">
+                            <svg viewBox="0 0 200 200">
+                                <circle class="timer-circle-bg" cx="100" cy="100" r="92"></circle>
+                            </svg>
+                            <div class="segment-mini-content">
+                                <div class="segment-mini-time">${totalMinutes}</div>
+                            </div>
+                        </div>
+                        <div class="segment-label">${s.name}</div> 
+                        ${splitIndicator}
+                    </div>
+                `;
+            }).join('');
+        }
 
         function startAnimation() {
             if (!state.isRunning) return;
@@ -1168,27 +1138,20 @@
         }
 
         function tick(timestamp) {
-            const deltaTime = (timestamp - lastUpdateTime) / 1000; // time in seconds
+            const deltaTime = (timestamp - lastUpdateTime) / 1000;
             lastUpdateTime = timestamp;
 
             if (state.isRunning) {
                 let { totalTimeRemaining, segmentTimeRemaining, segments, currentSegmentIndex } = state;
                 
-                // Decrement timers
                 totalTimeRemaining -= deltaTime;
                 segmentTimeRemaining -= deltaTime;
 
-                // Segment transition logic
                 if (segmentTimeRemaining <= 0) {
-                    // Alert at segment end (optional sound effect here)
-                    // playAudioAlert(); 
-                    
                     currentSegmentIndex++;
                     if (currentSegmentIndex < segments.length) {
-                        // Move to next segment
                         segmentTimeRemaining = segments[currentSegmentIndex].duration;
                     } else {
-                        // Session finished
                         totalTimeRemaining = 0;
                         segmentTimeRemaining = 0;
                         updateState({ isRunning: false, totalTimeRemaining, segmentTimeRemaining, currentSegmentIndex });
@@ -1223,7 +1186,6 @@
             
             const totalDuration = segments.reduce((sum, s) => sum + s.duration, 0);
 
-            // Set initial state
             updateState({
                 totalTimeRemaining: totalDuration,
                 totalTimeDuration: totalDuration,
@@ -1233,13 +1195,9 @@
                 isRunning: true
             });
             
-            // Start the timer loop
             startAnimation(); 
         }
 
-        // --- EVENT HANDLERS ---
-        
-        // Time Button Selection
         DOMElements.timeButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const newTime = parseInt(btn.dataset.time);
@@ -1247,17 +1205,14 @@
             });
         });
 
-       // --- ZONE SELECTION (THE CRITICAL PART) ---
         DOMElements.zoneCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', (e) => {
                 const newZone = e.target.value;
                 let finalZone = state.selectedZone;
 
                 if (e.target.checked) {
-                    // A zone was selected. Set finalZone to the selected zone's value.
                     finalZone = newZone; 
                     
-                    // Loop through all others and UNCHECK them
                     DOMElements.zoneCheckboxes.forEach(otherCheckbox => {
                         if (otherCheckbox !== e.target) {
                             otherCheckbox.checked = false;
@@ -1265,33 +1220,37 @@
                     });
                 } 
                 else {
-                    // The currently active zone was toggled OFF.
                     finalZone = 'none';
                 }
                 
-                // This is the essential line:
                 updateState({ selectedZone: finalZone });
             });
         });
 
-        // >>> MISSING START BUTTON LISTENER (ADDED BACK) <<<
         DOMElements.startBtn.addEventListener('click', () => {
             initializeTimer();
             enterFullscreen(DOMElements.appContainer);
         });
 
-        // Reset
+        DOMElements.playPauseBtn.addEventListener('click', () => {
+            updateState({ isRunning: !state.isRunning });
+            if (state.isRunning) {
+                startAnimation();
+            } else {
+                stopAnimation();
+            }
+        });
+
         DOMElements.resetBtn.addEventListener('click', () => {
             stopAnimation();
             updateState({
                 isRunning: false,
                 totalTimeRemaining: state.totalTimeDuration,
                 currentSegmentIndex: 0,
-                segmentTimeRemaining: state.segments[0]?.duration || 0 // Re-set segment to start
+                segmentTimeRemaining: state.segments[0]?.duration || 0
             });
         });
 
-        // Back to Home
         DOMElements.backBtn.addEventListener('click', () => {
             stopAnimation();
             updateState({
@@ -1302,25 +1261,20 @@
                 currentSegmentIndex: 0,
                 segmentTimeRemaining: 0
             });
-            // Optional: Exit fullscreen if active
             if (document.exitFullscreen) document.exitFullscreen();
         });
 
-        // Initial render on load
         renderUI();
 
-        // Add this registration logic at the end of your <script> block
         if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }, function(err) {
-            console.log('ServiceWorker registration failed: ', err);
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
             });
-        });
         }
-
     </script>
 </body>
-</html><!DOCTYPE html>
-<html lang="fr">
+</html>
