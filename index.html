@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
     <meta name="description" content="Minuteur professionnel pour massothérapie">
-    <title>Chrono Masso</title>
+    <title>Minuteur Massage Pro</title>
     
     <style>
         /* --- 1. VARIABLES & RESET --- */
@@ -274,6 +274,18 @@
             height: 100%;
         }
         
+        /* NEW STYLE for the split indicator */
+        .split-indicator {
+            font-size: clamp(2rem, 5.5vw, 3.5rem); 
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--c-text-main); 
+            height: 1.5rem; 
+            line-height: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
         .label-current-zone {
             font-size: clamp(1.5rem, 5vw, 3rem);
             font-weight: 300;
@@ -281,6 +293,7 @@
             letter-spacing: 2px;
             color: var(--c-text-muted);
             margin-bottom: 0.5rem;
+            margin-top: 0.2rem; /* Adjusted for visual separation from split-indicator */
         }
         
         .time-display-large {
@@ -424,6 +437,7 @@
                 </svg>
                 
                 <div class="clock-content">
+                    <div class="split-indicator" id="lblSplit"></div> 
                     <div class="label-current-zone" id="lblZone">Prêt</div>
                     <div class="time-display-large" id="lblTime">00:00</div>
                     <div class="time-display-total-large"><span id="lblTotal">00:00</span></div>
@@ -778,15 +792,23 @@
             document.getElementById('lblTime').textContent = formatTime(Math.max(0, appState.segRem));
             document.getElementById('lblTotal').textContent = formatTime(Math.max(0, appState.totalRem));
             
-            // Update Label with Split indicator
-            let label = currentSeg.name;
+            const splitIndicator = document.getElementById('lblSplit'); // Reference to the new element
+
+            // Split logic: Separate the split text from the zone name
+            let zoneLabel = currentSeg.name;
+            let splitText = '';
+
             if (currentSeg.isSplit) {
-                const half = currentSeg.dur / 2;
                 // Simplified split logic: check if less than half remains
                 const isSecondSide = (appState.segRem / currentSeg.dur) * 100 < 50; 
-                label += isSecondSide ? ' (G)' : ' (D)'; // Right (D)/Left (G) logic
+                splitText = isSecondSide ? '2/2' : '1/2'; 
             }
-            document.getElementById('lblZone').textContent = label;
+            
+            // Set the split text (above the zone label)
+            splitIndicator.textContent = splitText;
+            
+            // Set the main zone name (below the split text)
+            document.getElementById('lblZone').textContent = zoneLabel;
 
             // 1. Segment Ring Progress (Inner, Accent Color)
             const segPct = (appState.segRem / currentSeg.dur) * 100;
@@ -854,6 +876,7 @@
             // Ensure UI text is reset
             document.getElementById('lblTime').textContent = "00:00";
             document.getElementById('lblZone').textContent = "Prêt";
+            document.getElementById('lblSplit').textContent = ""; // Reset new split indicator
         }
 
         function finishSession() {
@@ -861,6 +884,7 @@
             cancelAnimationFrame(timerRAF);
             document.getElementById('lblTime').textContent = "FIN";
             document.getElementById('lblZone').textContent = "Terminé";
+            document.getElementById('lblSplit').textContent = ""; // Reset new split indicator
         }
 
         // Re-acquire Wake Lock on visibility change (tabs)
@@ -873,4 +897,3 @@
     </script>
 </body>
 </html>
-
